@@ -35,6 +35,33 @@ LSM303DLHC::~LSM303DLHC() {
 
 
 
+
+void LSM303DLHC::setAddr(uint8_t Accaddr, uint8_t Magnaddr)
+{
+	if((_Accaddr != Accaddr)||(_Magnaddr != Magnaddr))
+	{
+		reset();
+	}
+	_Accaddr = Accaddr;
+	_Magnaddr = Magnaddr;
+}
+
+void LSM303DLHC::setAccCoefficient(double ar)
+{
+	_ar = ar;
+}
+void LSM303DLHC::setMagnCoefficient(double mr)
+{
+	_mr = mr;
+}
+void LSM303DLHC::setOffset(int mx_offset, int my_offset, int mz_offset)
+{
+	_mx_offset = mx_offset;
+	_my_offset = my_offset;
+	_mz_offset = mz_offset;
+}
+
+
 void LSM303DLHC::setAccScale(uint8_t scale)
 {
 	_Ascale = scale;

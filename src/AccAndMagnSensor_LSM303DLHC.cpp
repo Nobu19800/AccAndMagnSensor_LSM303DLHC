@@ -136,7 +136,7 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onShutdown(RTC::UniqueId ec_id)
 
 RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onActivated(RTC::UniqueId ec_id)
 {
-	mraa_result_t response;
+	//mraa_result_t response;
 	if(_i2c == NULL)
 	{
 		_smf->sem_lock();
@@ -147,6 +147,10 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onActivated(RTC::UniqueId ec_id)
 	{
 		accSensor = new LSM303DLHC(_i2c, _smf, m_Acc_addr, m_Magn_addr);
 		
+	}
+	else
+	{
+		accSensor->setAddr(m_Acc_addr, m_Magn_addr);
 	}
   return RTC::RTC_OK;
 }
@@ -193,7 +197,7 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onExecute(RTC::UniqueId ec_id)
 		m_magn.data[2] = mz;
 		m_magnOut.write();
 
-		m_temp.data = 0;//accSensor->getTemp();
+		m_temp.data = temp;//accSensor->getTemp();
 		m_tempOut.write();
 
 		

@@ -15,6 +15,10 @@ class LSM303DLHC
 public:
 	LSM303DLHC(mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr = 0x19, uint8_t Magnaddr = 0x1e, double ar = 0.2, double mr = 0.2, int mx_offset = 935, int my_offset = 320, int mz_offset = 730);
 	~LSM303DLHC();
+	void setAddr(uint8_t Accaddr = 0x19, uint8_t Magnaddr = 0x1e);
+	void setAccCoefficient(double ar = 0.2);
+	void setMagnCoefficient(double mr = 0.2);
+	void setOffset(int mx_offset = 935, int my_offset = 320, int mz_offset = 730);
 	
 	void reset(void);
 	void getAcc(double &ax, double &ay, double &az);
