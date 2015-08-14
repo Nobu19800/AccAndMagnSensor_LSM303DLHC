@@ -247,13 +247,13 @@ class AccAndMagnSensor_LSM303DLHC
    * - Name:  Acc_addr
    * - DefaultValue: 25
    */
-  int m_Acc_addr;
+  //std::string m_Acc_addr;
   /*!
    * LSM303DLHCの地磁気センサのI2Cスレーブアドレス
    * - Name:  Magn_addr
    * - DefaultValue: 30
    */
-  int m_Magn_addr;
+  //std::string m_Magn_addr;
   /*!
    * 姿勢のオフセット
    * - Name: offset offset
@@ -262,6 +262,11 @@ class AccAndMagnSensor_LSM303DLHC
    * - Constraint: 0<=x<=3.14
    */
   double m_offset;
+  std::string m_accScale;
+  std::string m_magnScale;
+  int m_magnOffsetX;
+  int m_magnOffsetY;
+  int m_magnOffsetZ;
 
   // </rtc-template>
 

@@ -8,7 +8,10 @@
 #include <iostream>
 #include "LSM303DLHC.h"
 
-LSM303DLHC::LSM303DLHC(mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr, uint8_t Magnaddr, double ar, double mr, int mx_offset, int my_offset, int mz_offset) {
+
+#define DLM_WHO_ID  0x3C
+
+LSM303DLHC::LSM303DLHC(mraa_result_t &response, mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr, uint8_t Magnaddr, uint8_t Accscale, uint8_t Magnscale, int mx_offset, int my_offset, int mz_offset, double ar, double mr) {
 	_i2c = i2c;
 	
 	
@@ -26,24 +29,70 @@ LSM303DLHC::LSM303DLHC(mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr, uint8_t Ma
 	_my_offset = my_offset;
 	_mz_offset = mz_offset;
 
+	_Ascale = Accscale;
+	_Mscale = Magnscale;
+
+	if(!AccSensor_Exist())
+	{
+		response = MRAA_ERROR_UNSPECIFIED;
+		return;
+	}
+	if(!MagnSensor_Exist())
+	{
+		response = MRAA_ERROR_UNSPECIFIED;
+		return;
+	}
+
 	reset();
+
+	response = MRAA_SUCCESS;
 }
 
 LSM303DLHC::~LSM303DLHC() {
 	//delete _smf;
 }
 
-
-
-
-void LSM303DLHC::setAddr(uint8_t Accaddr, uint8_t Magnaddr)
+bool LSM303DLHC::AccSensor_Exist()
 {
-	if((_Accaddr != Accaddr)||(_Magnaddr != Magnaddr))
+	//uint8_t Buf[2];
+	//readByte(_Accaddr,WHO_AM_I,1,Buf);
+
+	return true;
+}
+
+bool LSM303DLHC::MagnSensor_Exist()
+{
+	uint8_t Buf[2];
+	readByte(_Magnaddr,WHO_AM_I_M,1,Buf);
+
+	
+	if(Buf[0] != DLM_WHO_ID)return false;
+	return true;
+}
+
+
+mraa_result_t LSM303DLHC::setAccAddr(uint8_t Accaddr)
+{
+	if(_Accaddr != Accaddr)
 	{
+		_Accaddr = Accaddr;
+		if(!AccSensor_Exist())return MRAA_ERROR_UNSPECIFIED;
 		reset();
 	}
-	_Accaddr = Accaddr;
-	_Magnaddr = Magnaddr;
+	return MRAA_SUCCESS;
+
+}
+
+mraa_result_t LSM303DLHC::setMagnAddr(uint8_t Magnaddr)
+{
+	if(_Magnaddr != Magnaddr)
+	{
+		_Magnaddr = Magnaddr;
+		if(!MagnSensor_Exist())return MRAA_ERROR_UNSPECIFIED;
+		reset();
+	}
+	return MRAA_SUCCESS;
+
 }
 
 void LSM303DLHC::setAccCoefficient(double ar)
@@ -54,6 +103,30 @@ void LSM303DLHC::setMagnCoefficient(double mr)
 {
 	_mr = mr;
 }
+
+
+void LSM303DLHC::setAccScale(uint8_t Accscale)
+{
+	if(_Ascale != Accscale)
+	{
+		_Ascale = Accscale;
+		reset();
+	}
+	
+}
+
+
+void LSM303DLHC::setMagnScale(uint8_t Magnscale)
+{
+	if(_Mscale != Magnscale)
+	{
+		_Mscale = Magnscale;
+		reset();
+	}
+}
+
+
+
 void LSM303DLHC::setOffset(int mx_offset, int my_offset, int mz_offset)
 {
 	_mx_offset = mx_offset;
@@ -62,7 +135,7 @@ void LSM303DLHC::setOffset(int mx_offset, int my_offset, int mz_offset)
 }
 
 
-void LSM303DLHC::setAccScale(uint8_t scale)
+void LSM303DLHC::setAccRange(uint8_t scale)
 {
 	_Ascale = scale;
 	writeByte(_Accaddr, CTRL_REG4_A, _Ascale << 3);
@@ -72,7 +145,7 @@ void LSM303DLHC::setAccScale(uint8_t scale)
 
 
 
-void LSM303DLHC::setMagnScale(uint8_t scale){
+void LSM303DLHC::setMagnRange(uint8_t scale){
 	_Mscale = scale;
 	writeByte(_Magnaddr, CRB_REG_M, _Mscale << 3);
 	
@@ -94,7 +167,7 @@ void LSM303DLHC::reset(void) {
 	ts.tv_nsec = 200000000;
 	nanosleep(&ts, NULL);
 	
-	setAccScale(AFS_16G);
+	setAccRange(_Ascale);
 	
 	
 	
@@ -103,7 +176,8 @@ void LSM303DLHC::reset(void) {
 	//writeByte(_Magnaddr,CRB_REG_M,0x20);
 	writeByte(_Magnaddr,MR_REG_M,0x00);
 	nanosleep(&ts, NULL);
-	setMagnScale(MFS_2500mG);
+	setMagnRange(_Mscale);
+	
 
 
 	nanosleep(&ts, NULL);
@@ -128,6 +202,7 @@ void LSM303DLHC::reset(void) {
 		lastAX += ax/count;
 		lastAY += ay/count;
 		lastAZ += az/count;
+		usleep(10000);
 	}
 
 
@@ -144,6 +219,7 @@ void LSM303DLHC::reset(void) {
 		lastMX += mx/count;
 		lastMY += my/count;
 		lastMZ += mz/count;
+		usleep(10000);
 	}
 
 	

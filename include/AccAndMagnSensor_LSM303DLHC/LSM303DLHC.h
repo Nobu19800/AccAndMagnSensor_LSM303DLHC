@@ -7,17 +7,24 @@
 
 #include "i2c_smf.h"
 
+#define LSM303DLHC_AccAddress 0x19
+#define LSM303DLHC_MagAddress 0x1e
 
  
 
 class LSM303DLHC
 {
 public:
-	LSM303DLHC(mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr = 0x19, uint8_t Magnaddr = 0x1e, double ar = 0.2, double mr = 0.2, int mx_offset = 935, int my_offset = 320, int mz_offset = 730);
+	LSM303DLHC(mraa_result_t &response, mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr = LSM303DLHC_AccAddress, uint8_t Magnaddr = LSM303DLHC_MagAddress, uint8_t Accscale = 0x03, uint8_t Magnscale = 0x02, int mx_offset = 935, int my_offset = 320, int mz_offset = 730,  double ar = 0.2, double mr = 0.2);
 	~LSM303DLHC();
-	void setAddr(uint8_t Accaddr = 0x19, uint8_t Magnaddr = 0x1e);
+	mraa_result_t setAccAddr(uint8_t Accaddr = LSM303DLHC_AccAddress);
+	mraa_result_t setMagnAddr(uint8_t Magnaddr = LSM303DLHC_MagAddress);
+	bool AccSensor_Exist();
+	bool MagnSensor_Exist();
 	void setAccCoefficient(double ar = 0.2);
 	void setMagnCoefficient(double mr = 0.2);
+	void setAccScale(uint8_t Accscale = 0x03);
+	void setMagnScale(uint8_t Magnscale = 0x02);
 	void setOffset(int mx_offset = 935, int my_offset = 320, int mz_offset = 730);
 	
 	void reset(void);
@@ -31,9 +38,9 @@ public:
 	
 	void getOrientation(double &rx, double &ry, double &rz);
 
-	void setAccScale(uint8_t scale);
+	void setAccRange(uint8_t scale);
 	
-	void setMagnScale(uint8_t scale);
+	void setMagnRange(uint8_t scale);
 	
 	enum regAddr
 	{

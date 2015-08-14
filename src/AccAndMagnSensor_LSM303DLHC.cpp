@@ -28,17 +28,29 @@ static const char* accandmagnsensor_lsm303dlhc_spec[] =
     "lang_type",         "compile",
     // Configuration variables
     "conf.default.I2C_channel", "1",
-    "conf.default.Acc_addr", "25",
-    "conf.default.Magn_addr", "30",
+    //"conf.default.Acc_addr", "25",
+    //"conf.default.Magn_addr", "30",
     "conf.default.offset", "0",
+    "conf.default.accScale", "16G",
+    "conf.default.magnScale", "2500mG",
+    "conf.default.magnOffsetX", "935",
+    "conf.default.magnOffsetY", "320",
+    "conf.default.magnOffsetZ", "730",
     // Widget
     "conf.__widget__.I2C_channel", "radio",
-    "conf.__widget__.Acc_addr", "text",
-    "conf.__widget__.Magn_addr", "text",
+    //"conf.__widget__.Acc_addr", "text",
+    //"conf.__widget__.Magn_addr", "text",
     "conf.__widget__.offset", "text",
+    "conf.__widget__.accScale", "radio",
+    "conf.__widget__.magnScale", "radio",
+    "conf.__widget__.magnOffsetX", "text",
+    "conf.__widget__.magnOffsetY", "text",
+    "conf.__widget__.magnOffsetZ", "text",
     // Constraints
     "conf.__constraints__.I2C_channel", "(1,6)",
-    "conf.__constraints__.offset", "0<=x<=3.14",
+    "conf.__constraints__.offset", "0<=x<=6.28",
+    "conf.__constraints__.accScale", "(2G,4G,8G,16G)",
+    "conf.__constraints__.magnScale", "(1300mG,1900mG,2500mG,4000mG,4700mG,5600mG,8100mG)",
     ""
   };
 // </rtc-template>
@@ -93,9 +105,14 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onInitialize()
   // <rtc-template block="bind_config">
   // Bind variables and configuration variable
   bindParameter("I2C_channel", m_I2C_channel, "1");
-  bindParameter("Acc_addr", m_Acc_addr, "25");
-  bindParameter("Magn_addr", m_Magn_addr, "30");
+  //bindParameter("Acc_addr", m_Acc_addr, "25");
+  //bindParameter("Magn_addr", m_Magn_addr, "30");
   bindParameter("offset", m_offset, "0");
+  bindParameter("accScale", m_accScale, "16G");
+  bindParameter("magnScale", m_magnScale, "2500mG");
+  bindParameter("magnOffsetX", m_magnOffsetX, "935");
+  bindParameter("magnOffsetY", m_magnOffsetY, "320");
+  bindParameter("magnOffsetZ", m_magnOffsetZ, "730");
   // </rtc-template>
 
   _smf = new i2c_smf();
@@ -136,7 +153,22 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onShutdown(RTC::UniqueId ec_id)
 
 RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onActivated(RTC::UniqueId ec_id)
 {
-	//mraa_result_t response;
+	uint8_t ascale;
+	if(m_accScale == "2G")ascale = 0x00;
+	else if(m_accScale == "4G")ascale = 0x01;
+	else if(m_accScale == "8G")ascale = 0x02;
+	else ascale = 0x03;
+
+	uint8_t mscale;
+	if(m_magnScale == "1300mG")mscale = 0x00;
+	else if(m_magnScale == "1900mG")mscale = 0x01;
+	else if(m_magnScale == "2500mG")mscale = 0x02;
+	else if(m_magnScale == "4000mG")mscale = 0x03;
+	else if(m_magnScale == "4700mG")mscale = 0x04;
+	else if(m_magnScale == "5600mG")mscale = 0x05;
+	else mscale = 0x06;
+
+	mraa_result_t response;
 	if(_i2c == NULL)
 	{
 		_smf->sem_lock();
@@ -145,12 +177,29 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onActivated(RTC::UniqueId ec_id)
 	}
 	if(accSensor == NULL)
 	{
-		accSensor = new LSM303DLHC(_i2c, _smf, m_Acc_addr, m_Magn_addr);
-		
+		accSensor = new LSM303DLHC(response, _i2c, _smf, LSM303DLHC_AccAddress, LSM303DLHC_MagAddress, ascale, mscale, m_magnOffsetX, m_magnOffsetY, m_magnOffsetZ);
+		if(response != MRAA_SUCCESS)
+		{
+			delete accSensor;
+			accSensor = NULL;
+			return RTC::RTC_ERROR;
+		}
 	}
 	else
 	{
-		accSensor->setAddr(m_Acc_addr, m_Magn_addr);
+		response = accSensor->setAccAddr(LSM303DLHC_AccAddress);
+		if(response != MRAA_SUCCESS)
+		{
+			return RTC::RTC_ERROR;
+		}
+		response = accSensor->setMagnAddr(LSM303DLHC_MagAddress);
+		if(response != MRAA_SUCCESS)
+		{
+			return RTC::RTC_ERROR;
+		}
+		accSensor->setAccScale(ascale);
+		accSensor->setMagnScale(mscale);
+		accSensor->setOffset(m_magnOffsetX, m_magnOffsetY, m_magnOffsetZ);
 	}
   return RTC::RTC_OK;
 }
