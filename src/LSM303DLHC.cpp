@@ -1,3 +1,10 @@
+/*!
+ * @file  LSM303DLHC.cpp
+ * 定数名はhttps://github.com/pololu/lsm303-arduino/blob/master/LSM303/LSM303.h(MITライセンス)から引用しました。
+ * @brief 6軸センサLSM303DLHCの通信関連のクラス
+ *
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -11,6 +18,22 @@
 
 #define DLM_WHO_ID  0x3C
 
+
+/**
+*@brief 6軸センサLSM303DLHCの通信関連のクラスのコンストラクタ
+* @param response 初期化成功でMRAA_SUCCESS、それ以外は失敗
+* @param i2c I2C操作オブジェクト
+* @param smf セマフォ操作オブジェクト
+* @param AccaMagaddr 加速度センサのアドレス
+* @param Magnaddr 地磁気センサのアドレス
+* @param Accscale 加速度センサのスケール
+* @param Magnscale 地磁気センサのスケール
+* @param mx_offset 地磁気センサのオフセット(X)
+* @param my_offset 地磁気センサのオフセット(Y)
+* @param mz_offset 地磁気センサのオフセット(Z)
+* @param ar 加速度へのIIRフィルタの係数
+* @param mr 地磁気へのIIRフィルタの係数
+*/
 LSM303DLHC::LSM303DLHC(mraa_result_t &response, mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr, uint8_t Magnaddr, uint8_t Accscale, uint8_t Magnscale, int mx_offset, int my_offset, int mz_offset, double ar, double mr) {
 	_i2c = i2c;
 	
@@ -48,10 +71,17 @@ LSM303DLHC::LSM303DLHC(mraa_result_t &response, mraa::I2c *i2c, i2c_smf *smf, ui
 	response = MRAA_SUCCESS;
 }
 
+/**
+*@brief 6軸センサLSM303DLHCの通信関連のクラスのデストラクタ
+*/
 LSM303DLHC::~LSM303DLHC() {
 	//delete _smf;
 }
 
+/**
+*@brief 加速度センサの存在確認
+* @return 存在する場合true、存在しない場合false
+*/
 bool LSM303DLHC::AccSensor_Exist()
 {
 	//uint8_t Buf[2];
@@ -60,6 +90,10 @@ bool LSM303DLHC::AccSensor_Exist()
 	return true;
 }
 
+/**
+*@brief 地磁気センサの存在確認
+* @return 存在する場合true、存在しない場合false
+*/
 bool LSM303DLHC::MagnSensor_Exist()
 {
 	uint8_t Buf[2];
@@ -70,7 +104,11 @@ bool LSM303DLHC::MagnSensor_Exist()
 	return true;
 }
 
-
+/**
+*@brief 加速度センサのI2Cアドレス再設定
+* @param AccaMagaddr I2Cアドレス
+* @return 成功でMRAA_SUCCESS、それ以外は失敗
+*/
 mraa_result_t LSM303DLHC::setAccAddr(uint8_t Accaddr)
 {
 	if(_Accaddr != Accaddr)
@@ -83,6 +121,11 @@ mraa_result_t LSM303DLHC::setAccAddr(uint8_t Accaddr)
 
 }
 
+/**
+*@brief 地磁気センサのI2Cアドレス再設定
+* @param Magnaddr I2Cアドレス
+* @return 成功でMRAA_SUCCESS、それ以外は失敗
+*/
 mraa_result_t LSM303DLHC::setMagnAddr(uint8_t Magnaddr)
 {
 	if(_Magnaddr != Magnaddr)
@@ -95,16 +138,28 @@ mraa_result_t LSM303DLHC::setMagnAddr(uint8_t Magnaddr)
 
 }
 
+/**
+*@brief 加速度センサのフィルタ係数再設定
+* @param ar 係数
+*/
 void LSM303DLHC::setAccCoefficient(double ar)
 {
 	_ar = ar;
 }
+
+/**
+*@brief 地磁気センサのフィルタ係数再設定
+* @param mr 係数
+*/
 void LSM303DLHC::setMagnCoefficient(double mr)
 {
 	_mr = mr;
 }
 
-
+/**
+*@brief 加速度センサスケール再設定
+* @param Accscale スケール
+*/
 void LSM303DLHC::setAccScale(uint8_t Accscale)
 {
 	if(_Ascale != Accscale)
@@ -115,7 +170,10 @@ void LSM303DLHC::setAccScale(uint8_t Accscale)
 	
 }
 
-
+/**
+*@brief 地磁気センサスケール再設定
+* @param Magnscale スケール
+*/
 void LSM303DLHC::setMagnScale(uint8_t Magnscale)
 {
 	if(_Mscale != Magnscale)
@@ -126,7 +184,12 @@ void LSM303DLHC::setMagnScale(uint8_t Magnscale)
 }
 
 
-
+/**
+*@brief 地磁気センサのオフセット再設定
+* @param mx_offset オフセット(X)
+* @param my_offset オフセット(Y)
+* @param mz_offset オフセット(Z)
+*/
 void LSM303DLHC::setOffset(int mx_offset, int my_offset, int mz_offset)
 {
 	_mx_offset = mx_offset;
@@ -134,7 +197,10 @@ void LSM303DLHC::setOffset(int mx_offset, int my_offset, int mz_offset)
 	_mz_offset = mz_offset;
 }
 
-
+/**
+*@brief 加速度センサのスケールを反映
+* @param scale スケール
+*/
 void LSM303DLHC::setAccRange(uint8_t scale)
 {
 	_Ascale = scale;
@@ -144,13 +210,19 @@ void LSM303DLHC::setAccRange(uint8_t scale)
 }
 
 
-
+/**
+*@brief 地磁気センサのスケールを反映
+* @param scale スケール
+*/
 void LSM303DLHC::setMagnRange(uint8_t scale){
 	_Mscale = scale;
 	writeByte(_Magnaddr, CRB_REG_M, _Mscale << 3);
 	
 }
 
+/**
+*@brief 初期化
+*/
 void LSM303DLHC::reset(void) {
 	
 	
@@ -225,6 +297,12 @@ void LSM303DLHC::reset(void) {
 	
 }
 
+/**
+*@brief 姿勢を計算
+* @param rx ロール角
+* @param ry ピッチ角
+* @param rz ヨー角
+*/
 void LSM303DLHC::getOrientation(double &rx, double &ry, double &rz)
 {
 	
@@ -244,7 +322,12 @@ void LSM303DLHC::getOrientation(double &rx, double &ry, double &rz)
 	//std::cout << rz << "\t" << lastMX << "\t" << lastMY << "\t" << lastMZ << std::endl;
 }
 
-
+/**
+*@brief 計測した加速度取得(オフセット有り)
+* @param ax 加速度(X)
+* @param ay 加速度(Y)
+* @param az 加速度(Z)
+*/
 void LSM303DLHC::getAcc(double &ax, double &ay, double &az)
 {
 	getAccData(ax,ay,az);
@@ -256,6 +339,12 @@ void LSM303DLHC::getAcc(double &ax, double &ay, double &az)
 
 }
 
+/**
+*@brief 計測した地磁気取得(オフセット有り)
+* @param mx 地磁気(X)
+* @param my 地磁気(Y)
+* @param mz 地磁気(Z)
+*/
 void LSM303DLHC::getMagn(double &mx, double &my, double &mz)
 {
 	getMagnData(mx,my,mz);
@@ -270,7 +359,10 @@ void LSM303DLHC::getMagn(double &mx, double &my, double &mz)
 	//std::cout << mx << "\t" << my << "\t" << mz << std::endl;
 }
 
-
+/**
+*@brief 計測した温度取得(現在のところはgetTempDataと同じ)
+* @return 温度
+*/
 double LSM303DLHC::getTemp()
 {
 	lastTemp = getTempData();
@@ -280,7 +372,12 @@ double LSM303DLHC::getTemp()
 
 
 
-
+/**
+*@brief 計測した加速度取得(オフセット有り)
+* @param ax 加速度(X)
+* @param ay 加速度(Y)
+* @param az 加速度(Z)
+*/
 void LSM303DLHC::getAccData(double &ax, double &ay, double &az) {
 	uint8_t Buf[6];
 	readByte(_Accaddr, OUT_X_L_A|0x80, 6, Buf);
@@ -309,6 +406,12 @@ void LSM303DLHC::getAccData(double &ax, double &ay, double &az) {
 	
 }
 
+/**
+*@brief 計測した地磁気取得(オフセット有り)
+* @param mx 地磁気(X)
+* @param my 地磁気(Y)
+* @param mz 地磁気(Z)
+*/
 void LSM303DLHC::getMagnData(double &mx, double &my, double &mz) {
 	
 	
@@ -350,6 +453,10 @@ void LSM303DLHC::getMagnData(double &mx, double &my, double &mz) {
 	
 }
 
+/**
+*@brief 計測した温度取得
+* @return 温度
+*/
 double LSM303DLHC::getTempData()
 {
 	uint8_t Buf[2];
@@ -369,7 +476,12 @@ double LSM303DLHC::getTempData()
 	return (double)Temp/8.;
 }
 
-
+/**
+*@brief 特定レジスタに書き込む
+* @param Address I2Cアドレス(SPI通信の場合はセンサの判別に利用するのでアドレスのデフォルト値を入力)
+* @param Register レジスタ
+* @param Data 書き込むデータ
+*/
 void LSM303DLHC::writeByte(uint8_t Address, uint8_t Register, uint8_t Data) {
 
 	_smf->sem_lock();
@@ -382,6 +494,13 @@ void LSM303DLHC::writeByte(uint8_t Address, uint8_t Register, uint8_t Data) {
   	
 }
 
+/**
+*@brief 特定レジスタに書き込んで値を読み込む
+* @param Address I2Cアドレス(SPI通信の場合はセンサの判別に利用するのでアドレスのデフォルト値を入力)
+* @param Register レジスタ
+* @param Nbytes 読み込むデータの長さ
+* @param Data 読み込んだデータ
+*/
 void LSM303DLHC::readByte(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data) {
 	
 	_smf->sem_lock();

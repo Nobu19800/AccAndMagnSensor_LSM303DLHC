@@ -1,3 +1,9 @@
+/*!
+ * @file  i2c_smf.cpp
+ * @brief セマフォ操作のクラス
+ *
+ */
+
 #include <iostream>
 
 
@@ -11,8 +17,35 @@ union semun{
 }c_arg;
 
 
+/**
+*@brief セマフォ操作のクラスのコンストラクタ
+* @param name ファイル名
+* @param val セマフォの値
+*/
+i2c_smf::i2c_smf(char *name, int val)
+{
+	
+	
+	sid=sem_get(name, val);
+	
+	
+}
 
-int i2c_smf::sem_get(char *path)
+/**
+*@brief セマフォ操作のクラスのデストラクタ
+*/
+i2c_smf::~i2c_smf()
+{
+
+}
+
+/**
+*@brief セマフォ取得
+* @param path ファイル名
+* @param val セマフォの値
+* @return ID
+*/
+int i2c_smf::sem_get(char *path, int val)
 {
 	
 
@@ -22,7 +55,7 @@ int i2c_smf::sem_get(char *path)
 	}
 
 	if(semctl(sid,0,GETVAL,c_arg)==0){
-		c_arg.val=1;
+		c_arg.val=val;
 		if(semctl(sid,0,SETVAL,c_arg)==-1){
 			perror("semctl");
 			return(-1);
@@ -31,6 +64,10 @@ int i2c_smf::sem_get(char *path)
 	return(sid);
 }
 
+/**
+*@brief セマフォをロック
+* @return 成功で1
+*/
 int i2c_smf::sem_lock()
 {
 	struct sembuf sb;
@@ -44,6 +81,10 @@ int i2c_smf::sem_lock()
 	return(1);
 }
 
+/**
+*@brief セマフォをアンロック
+* @return 成功で1
+*/
 int i2c_smf::sem_unlock()
 {
 	struct sembuf sb;
@@ -57,21 +98,13 @@ int i2c_smf::sem_unlock()
 	return(1);
 }
 
+/**
+*@brief セマフォの値を取得
+* @return セマフォの値
+*/
 int i2c_smf::sem_ctl()
 {
 	return semctl(sid,0,GETVAL,c_arg);
 }
 
-i2c_smf::i2c_smf(char *name, int val)
-{
-	
-	
-	sid=sem_get(name);
-	
-	
-}
 
-i2c_smf::~i2c_smf()
-{
-
-}

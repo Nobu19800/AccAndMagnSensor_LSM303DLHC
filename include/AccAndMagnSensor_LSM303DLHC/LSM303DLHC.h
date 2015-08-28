@@ -1,3 +1,11 @@
+/*!
+ * @file  LSM303DLHC.h
+ * 定数名はhttps://github.com/pololu/lsm303-arduino/blob/master/LSM303/LSM303.h(MITライセンス)から引用しました。
+ * @brief 6軸センサLSM303DLHCの通信関連のクラス
+ *
+ */
+
+
 #ifndef LSM303DLHC_H
 #define LSM303DLHC_H
 
@@ -11,35 +19,140 @@
 #define LSM303DLHC_MagAddress 0x1e
 
  
-
+/**
+ * @class LSM303DLHC
+*@brief 6軸センサLSM303DLHCの通信関連のクラス
+*/
 class LSM303DLHC
 {
 public:
+	/**
+	*@brief コンストラクタ
+	* @param response 初期化成功でMRAA_SUCCESS、それ以外は失敗
+	* @param i2c I2C操作オブジェクト
+	* @param smf セマフォ操作オブジェクト
+	* @param AccaMagaddr 加速度センサのアドレス
+	* @param Magnaddr 地磁気センサのアドレス
+	* @param Accscale 加速度センサのスケール
+	* @param Magnscale 地磁気センサのスケール
+	* @param mx_offset 地磁気センサのオフセット(X)
+	* @param my_offset 地磁気センサのオフセット(Y)
+	* @param mz_offset 地磁気センサのオフセット(Z)
+	* @param ar 加速度へのIIRフィルタの係数
+	* @param mr 地磁気へのIIRフィルタの係数
+	*/
 	LSM303DLHC(mraa_result_t &response, mraa::I2c *i2c, i2c_smf *smf, uint8_t Accaddr = LSM303DLHC_AccAddress, uint8_t Magnaddr = LSM303DLHC_MagAddress, uint8_t Accscale = 0x03, uint8_t Magnscale = 0x02, int mx_offset = 935, int my_offset = 320, int mz_offset = 730,  double ar = 0.2, double mr = 0.2);
+	/**
+	*@brief デストラクタ
+	*/
 	~LSM303DLHC();
+	/**
+	*@brief 加速度センサのI2Cアドレス再設定
+	* @param AccaMagaddr I2Cアドレス
+	* @return 成功でMRAA_SUCCESS、それ以外は失敗
+	*/
 	mraa_result_t setAccAddr(uint8_t Accaddr = LSM303DLHC_AccAddress);
+	/**
+	*@brief 地磁気センサのI2Cアドレス再設定
+	* @param Magnaddr I2Cアドレス
+	* @return 成功でMRAA_SUCCESS、それ以外は失敗
+	*/
 	mraa_result_t setMagnAddr(uint8_t Magnaddr = LSM303DLHC_MagAddress);
+	/**
+	*@brief 加速度センサの存在確認
+	* @return 存在する場合true、存在しない場合false
+	*/
 	bool AccSensor_Exist();
+	/**
+	*@brief 地磁気センサの存在確認
+	* @return 存在する場合true、存在しない場合false
+	*/
 	bool MagnSensor_Exist();
+	/**
+	*@brief 加速度センサのフィルタ係数再設定
+	* @param ar 係数
+	*/
 	void setAccCoefficient(double ar = 0.2);
+	/**
+	*@brief 地磁気センサのフィルタ係数再設定
+	* @param mr 係数
+	*/
 	void setMagnCoefficient(double mr = 0.2);
+	/**
+	*@brief 加速度センサスケール再設定
+	* @param Accscale スケール
+	*/
 	void setAccScale(uint8_t Accscale = 0x03);
+	/**
+	*@brief 地磁気センサスケール再設定
+	* @param Magnscale スケール
+	*/
 	void setMagnScale(uint8_t Magnscale = 0x02);
+	/**
+	*@brief 地磁気センサのオフセット再設定
+	* @param mx_offset オフセット(X)
+	* @param my_offset オフセット(Y)
+	* @param mz_offset オフセット(Z)
+	*/
 	void setOffset(int mx_offset = 935, int my_offset = 320, int mz_offset = 730);
-	
+	/**
+	*@brief 初期化
+	*/
 	void reset(void);
+	/**
+	*@brief 計測した加速度取得
+	* @param ax 加速度(X)
+	* @param ay 加速度(Y)
+	* @param az 加速度(Z)
+	*/
 	void getAcc(double &ax, double &ay, double &az);
+	/**
+	*@brief 計測した地磁気取得
+	* @param mx 地磁気(X)
+	* @param my 地磁気(Y)
+	* @param mz 地磁気(Z)
+	*/
 	void getMagn(double &mx, double &my, double &mz);
+	/**
+	*@brief 計測した温度取得(現在のところはgetTempDataと同じ)
+	* @return 温度
+	*/
 	double getTemp();
-
+	/**
+	*@brief 計測した加速度取得(オフセット有り)
+	* @param ax 加速度(X)
+	* @param ay 加速度(Y)
+	* @param az 加速度(Z)
+	*/
 	void getAccData(double &ax, double &ay, double &az);
+	/**
+	*@brief 計測した地磁気取得(オフセット有り)
+	* @param mx 地磁気(X)
+	* @param my 地磁気(Y)
+	* @param mz 地磁気(Z)
+	*/
 	void getMagnData(double &mx, double &my, double &mz);
+	/**
+	*@brief 計測した温度取得
+	* @return 温度
+	*/
 	double getTempData();
-	
+	/**
+	*@brief 姿勢を計算
+	* @param rx ロール角
+	* @param ry ピッチ角
+	* @param rz ヨー角
+	*/
 	void getOrientation(double &rx, double &ry, double &rz);
-
+	/**
+	*@brief 加速度センサのスケールを反映
+	* @param scale スケール
+	*/
 	void setAccRange(uint8_t scale);
-	
+	/**
+	*@brief 地磁気センサのスケールを反映
+	* @param scale スケール
+	*/
 	void setMagnRange(uint8_t scale);
 	
 	enum regAddr
@@ -201,8 +314,20 @@ public:
 private:
 	
 	//int _i2channel;
-
+	/**
+	*@brief 特定レジスタに書き込んで値を読み込む
+	* @param Address I2Cアドレス(SPI通信の場合はセンサの判別に利用するのでアドレスのデフォルト値を入力)
+	* @param Register レジスタ
+	* @param Nbytes 読み込むデータの長さ
+	* @param Data 読み込んだデータ
+	*/
 	void readByte(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data);
+	/**
+	*@brief 特定レジスタに書き込む
+	* @param Address I2Cアドレス(SPI通信の場合はセンサの判別に利用するのでアドレスのデフォルト値を入力)
+	* @param Register レジスタ
+	* @param Data 書き込むデータ
+	*/
 	void writeByte(uint8_t Address, uint8_t Register, uint8_t Data);
 	
 	uint8_t _Accaddr;
