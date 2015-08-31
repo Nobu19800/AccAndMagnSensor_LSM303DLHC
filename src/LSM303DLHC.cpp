@@ -4,7 +4,7 @@
  * @brief 6軸センサLSM303DLHCの通信関連のクラス
  *
  */
-
+#define _USE_MATH_DEFINES
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
@@ -307,7 +307,7 @@ void LSM303DLHC::getOrientation(double &rx, double &ry, double &rz)
 {
 	
 
-	ry = atan2(lastAY,lastAZ);
+	ry = atan2(lastAY,lastAZ)-M_PI;
 	rx = atan2(-lastAX,sqrt(lastAY*lastAY+lastAZ*lastAZ));
 
 	
@@ -317,7 +317,7 @@ void LSM303DLHC::getOrientation(double &rx, double &ry, double &rz)
 
 	
 
-	rz = atan2(-myi,mxi);
+	rz = atan2(myi,mxi);
 
 	//std::cout << rz << "\t" << lastMX << "\t" << lastMY << "\t" << lastMZ << std::endl;
 }

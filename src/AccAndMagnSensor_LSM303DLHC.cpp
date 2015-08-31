@@ -234,6 +234,7 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onExecute(RTC::UniqueId ec_id)
 		m_acc.data.ax = ax;
 		m_acc.data.ay = ay;
 		m_acc.data.az = az;
+		setTimestamp(m_acc);
 		m_accOut.write();
 
 		
@@ -244,9 +245,11 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onExecute(RTC::UniqueId ec_id)
 		m_magn.data[0] = mx;
 		m_magn.data[1] = my;
 		m_magn.data[2] = mz;
+		setTimestamp(m_magn);
 		m_magnOut.write();
 
 		m_temp.data = temp;//accSensor->getTemp();
+		setTimestamp(m_temp);
 		m_tempOut.write();
 
 		
@@ -256,6 +259,7 @@ RTC::ReturnCode_t AccAndMagnSensor_LSM303DLHC::onExecute(RTC::UniqueId ec_id)
 		m_rot.data.r = rx;
 		m_rot.data.p = ry;
 		m_rot.data.y = rz - m_offset;
+		setTimestamp(m_rot);
 
 		m_rotOut.write();
 
